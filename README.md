@@ -22,6 +22,6 @@
 
 ### Example Scenario
 
-* As part of my research I have looked into coronary artery disease, which has a metric called Coronary Flow Reserve (CFR). As a result, I have notes in my Obsidian vault on the topic.
+* As part of my research I have looked into the fluid dynamics of coronary artery disease, which has an associated metric called Coronary Flow Reserve (CFR). As a result, I have notes in my Obsidian vault on the topic.
 
 <img src="./docs/out.gif"/>
