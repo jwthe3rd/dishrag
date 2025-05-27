@@ -12,6 +12,12 @@
 
 #### Note this is still very new and very much in an experimental phase
 
+### How to test
+
+* clone the git repo
+* copy it into your plugins folder at "${YOUR_VAULT}/.obsidian/plugins/"
+* be sure to enable community plugins in your obsidian settings
+
 ### Current capability
 
 * Write down your query in the current document, then highlight and issue either of the two commands below...
