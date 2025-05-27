@@ -8,3 +8,9 @@
 ### Use case
 
 - Primarily thinking researchers who use Obsidian to collect notes on literature, as well as notes on their own progress, to aid in retrieval of domain specific knowledge and generation of text insights based on results.
+
+
+
+
+
+* based on the obsidian sample plugin
