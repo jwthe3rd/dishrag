@@ -26,6 +26,7 @@
 
 * Use the command Query Local LLM (with plaintext RAG) to scrape your current Obsidian vault to add context to your response from the LLM
 
+##### Note currently only supports local LLMs running through ollama
 ### Example Scenario
 
 * As part of my research I have looked into the fluid dynamics of coronary artery disease, which has an associated metric called Coronary Flow Reserve (CFR). As a result, I have notes in my Obsidian vault on the topic.
