@@ -19,3 +19,9 @@
 * Use the command (via Ctrl+P in Obsidian) Query Local LLM (with simple Rules) to query a rules file titled "dishragrules" for outputs using deepseekr1:7b with no RAG.
 
 * Use the command Query Local LLM (with plaintext RAG) to scrape your current Obsidian vault to add context to your response from the LLM
+
+### Example Scenario
+
+* As part of my research I have looked into coronary artery disease, which has a metric called Coronary Flow Reserve (CFR). As a result, I have notes in my Obsidian vault on the topic.
+
+<img src="./docs/out.gif"/>
