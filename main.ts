@@ -4,16 +4,25 @@ import ollama from 'ollama'
 //
 
 
-interface MyPluginSettings {
-	mySetting: string;
+interface PluginSettings {
+	local: boolean;
+	model: string;
+	api_key: string;
+	vault_root_dir_for_search: string;
+	rules_dir: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: PluginSettings = {
+	local: true,
+	model: 'deepseek-r1:7b',
+	api_key: 'null',
+	vault_root_dir_for_search: '',
+	rules_dir: ''
+
 }
 
-export default class HelloWorldPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class DishRAGPlugin extends Plugin {
+	settings: PluginSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -111,7 +120,7 @@ export default class HelloWorldPlugin extends Plugin {
 			name: 'Query Local LLM (with plaintext RAG)',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const prompt = editor.getSelection();
-				const ragFilePath = "dishragrules.md";
+				const ragFilePath = `${this.settings.rules_dir}dishragrules.md`;
 				const ruleFile = this.app.vault.getFileByPath(ragFilePath);
 
 				new Notice('Successfully read rules file!');
@@ -123,18 +132,21 @@ export default class HelloWorldPlugin extends Plugin {
 
 				if (ruleFile === null)
 				{
-					new Notice("Rules file is not present!");
+					new Notice("Rules file is not present at specified location!");
 					return;
 				}
 
 				let plain_rag_context = "";
+				let response: any = null;
 
 				for (const file of this.app.vault.getMarkdownFiles())
 				{
 					if (file.path.startsWith('Templates/')) continue;
-
-					const content = await this.app.vault.read(file);
-					plain_rag_context += `\n\n --- \n# ${file.basename}\n\n${content}`;
+					if (file.path.startsWith(this.settings.vault_root_dir_for_search))
+					{
+						const content = await this.app.vault.read(file);
+						plain_rag_context += `\n\n --- \n# ${file.basename}\n\n${content}`;
+					}
 				}
 
 				new Notice("Added context from the current Obsidian Vault!")
@@ -143,9 +155,22 @@ export default class HelloWorldPlugin extends Plugin {
 
 				const gen_prompt = JSON.stringify(plain_rag_context).concat(JSON.stringify(prompt).concat(JSON.stringify(rules)));
 
-				new Notice('Generating Response!');
-				const test = await ollama.chat({ model: 'deepseek-r1:7b', messages: [{role: 'user', content: gen_prompt}] });
-				editor.replaceSelection(test.message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim());
+
+				if (this.settings.local)
+				{
+					new Notice(`Generating Response with local LLM ${this.settings.model}!`);
+					response = await ollama.chat({ model: 'deepseek-r1:7b', messages: [{role: 'user', content: gen_prompt}] });
+				} else {
+					new Notice(`Generating Response with web LLM ${this.settings.model}!`);
+					response = await ollama.chat({ model: this.settings.model, messages: [{role: 'user', content: gen_prompt}] });
+				}
+
+				if (response == null) {
+					new Notice('Error accessing the model!');
+					editor.replaceSelection('Error')
+
+				}
+				editor.replaceSelection(response.message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim());
 			}
 		});
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
@@ -211,9 +236,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: HelloWorldPlugin;
+	plugin: DishRAGPlugin;
 
-	constructor(app: App, plugin: HelloWorldPlugin) {
+	constructor(app: App, plugin: DishRAGPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -224,13 +249,39 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+			.setName('Locality')
+			.setDesc('Set whether your model is local or web')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.local)
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.local = value;
+					await this.plugin.saveSettings();
+				}));
+		new Setting(containerEl)
+			.setName('Model')
+			.setDesc('Input the model name in ollama (if local)')
+			.addText(text => text
+				.setValue(this.plugin.settings.model)
+				.onChange(async (value) => {
+					this.plugin.settings.model = value;
+					await this.plugin.saveSettings();
+				}));
+		new Setting(containerEl)
+			.setName('Path to root folder for RAG generation (relative to vault directory)')
+			.setDesc('Path to data (default is the entire vault)')
+			.addText(text => text
+				.setValue(this.plugin.settings.vault_root_dir_for_search)
+				.onChange(async (value) => {
+					this.plugin.settings.vault_root_dir_for_search = value;
+					await this.plugin.saveSettings();
+				}));
+		new Setting(containerEl)
+			.setName('Path to root folder with dishragrules file (relative to vault directory)')
+			.setDesc('Path to data (default is the base directory of the vault)')
+			.addText(text => text
+				.setValue(this.plugin.settings.rules_dir)
+				.onChange(async (value) => {
+					this.plugin.settings.rules_dir = value;
 					await this.plugin.saveSettings();
 				}));
 	}
