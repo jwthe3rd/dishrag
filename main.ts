@@ -79,7 +79,7 @@ export default class HelloWorldPlugin extends Plugin {
 			name: 'Query Local LLM (with simple rules)',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const prompt = editor.getSelection();
-				const ruleFilePath = "Projects/dishrag/dishragrules.md";
+				const ruleFilePath = "dishragrules.md";
 				const file = this.app.vault.getFileByPath(ruleFilePath);
 
 				new Notice('Successfully read rules file!');
@@ -111,7 +111,7 @@ export default class HelloWorldPlugin extends Plugin {
 			name: 'Query Local LLM (with plaintext RAG)',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const prompt = editor.getSelection();
-				const ragFilePath = "Projects/dishrag/dishragrules.md";
+				const ragFilePath = "dishragrules.md";
 				const ruleFile = this.app.vault.getFileByPath(ragFilePath);
 
 				new Notice('Successfully read rules file!');
