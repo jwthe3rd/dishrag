@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import ollama from 'ollama'
+import OpenAI from 'openai';
 // Remember to rename these classes and interfaces!
 //
 
@@ -26,6 +27,10 @@ export default class DishRAGPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+
+		if (!this.settings.local)
+		{
+		}
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -159,10 +164,13 @@ export default class DishRAGPlugin extends Plugin {
 				if (this.settings.local)
 				{
 					new Notice(`Generating Response with local LLM ${this.settings.model}!`);
-					response = await ollama.chat({ model: 'deepseek-r1:7b', messages: [{role: 'user', content: gen_prompt}] });
+					response = await ollama.chat({ model: this.settings.model, messages: [{role: 'user', content: gen_prompt}] });
 				} else {
 					new Notice(`Generating Response with web LLM ${this.settings.model}!`);
-					response = await ollama.chat({ model: this.settings.model, messages: [{role: 'user', content: gen_prompt}] });
+					const openai = new OpenAI({apiKey: this.settings.api_key})
+
+					const result = await openai.chat.completions.create({ model: this.settings.model, store: true, messages: [{"role": 'user', "content": gen_prompt}] });
+					response = result.choices[0].message
 				}
 
 				if (response == null) {
@@ -256,6 +264,8 @@ class SampleSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					this.plugin.settings.local = value;
 					await this.plugin.saveSettings();
+
+					this.display();
 				}));
 		new Setting(containerEl)
 			.setName('Model')
@@ -284,5 +294,15 @@ class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.rules_dir = value;
 					await this.plugin.saveSettings();
 				}));
+		if (!this.plugin.settings.local)
+		{new Setting(containerEl)
+			.setName('OpenAI api key')
+			.setDesc('Enter your api key for the OpenAI interface')
+			.addText(text => text
+				.setValue(this.plugin.settings.api_key)
+				.onChange(async (value) => {
+					this.plugin.settings.api_key = value;
+					await this.plugin.saveSettings();
+				}));}
 	}
 }

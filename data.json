@@ -1,7 +1,7 @@
 {
   "local": true,
   "model": "deepseek-r1:7b",
-  "api_key": "null",
+  "api_key": "",
   "vault_root_dir_for_search": "",
   "rules_dir": ""
 }
