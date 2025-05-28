@@ -116,7 +116,7 @@ export default class DishRAGPlugin extends Plugin {
 					return;
 				}
 
-				let plain_rag_context = "";
+				let plain_rag_context = "Everything here is background information until I tell you otherwise";
 				let response: any = null;
 
 				for (const file of this.app.vault.getMarkdownFiles())
@@ -128,12 +128,13 @@ export default class DishRAGPlugin extends Plugin {
 						plain_rag_context += `\n\n --- \n# ${file.basename}\n\n${content}`;
 					}
 				}
+				plain_rag_context += `\n \n Now this is the end of the background material, next is the prompt that I would like you to answer! \n \n`
 
 				new Notice("Added context from the current Obsidian Vault!")
 
 				const rules = await this.app.vault.read(ruleFile);
 
-				const gen_prompt = JSON.stringify(plain_rag_context).concat(JSON.stringify(prompt).concat(JSON.stringify(rules)));
+				const gen_prompt = JSON.stringify(rules).concat(JSON.stringify(plain_rag_context).concat(JSON.stringify(prompt)));
 
 
 				if (this.settings.local)
